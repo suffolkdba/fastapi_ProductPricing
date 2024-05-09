@@ -5,13 +5,11 @@ import os
 from dotenv import load_dotenv, dotenv_values
 
 load_dotenv() #Loads environment variables
-
 MYSQL_HOST          = os.environ['MYSQL_HOST']
 MYSQL_USER         = os.environ['MYSQL_USER']
 MYSQL_PASSWORD     = os.environ['MYSQL_PASSWORD']
 MYSQL_PORT              = os.environ['MYSQL_PORT']
 
-import mysql.connector
 mydb = mysql.connector.connect(
   host=MYSQL_HOST,
   user=MYSQL_USER,
