@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, APIRouter
 from sqlmodel import create_engine, SQLModel, Session, select
 from datetime import datetime
 import contextlib
-from schema import Product, ProductsUpdate, ProductsInsert
+from schema import Product, ProductsUpdate, ProductsInsert, ProductPrice, ProductPriceByName
 from db import engine, get_session
 
 router = APIRouter(prefix="/api/products", tags=["products"])
@@ -31,32 +31,46 @@ def get_product(product_id: int, session: Session = Depends(get_session)) -> Pro
     return product
 
 # update product by id
-@router.put("/{product_id}", response_model=Product)
-def update_product(product_id: int, product_input: ProductsUpdate, session: Session = Depends(get_session)) -> Product:
-    product = session.exec(select(Product).where(Product.id == product_id)).first()
+@router.put("/price/{product_id}", response_model=Product)
+def update_product_price_by_id(product_id: int, product_input: ProductPrice, session: Session = Depends(get_session)) -> Product:
+    product = session.get(Product, product_id)
+    if product:
+        product.ProductPrice = product_input.ProductPrice
+        session.commit()
+        return product
+    else:
+        raise HTTPException(status_code=404, detail=f"No product with id={product_id}")
+
+# Update Stock by Id
+@router.put("/stock/{product_id}", response_model=Product)
+def update_stock_by_id(product_id: int, product_input: ProductsUpdate, session: Session = Depends(get_session)) -> Product:
+    product = session.get(Product, product_id)
+    if product:
+        product.StockQty = product_input.StockQty
+        session.commit()
+        return product
+    else:
+        raise HTTPException(status_code=404, detail=f"No product with id {product_id}")
+
+# Get Price by Product Id
+@router.get("/price/{product_id}", response_model=Product)
+def get_product_price_by_id(product_id: int, session: Session = Depends(get_session)) -> Product:
+    product = session.exec(select(Product.ProductPrice).where(Product.id == product_id))
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    product = Product.model_validate(product_input, product)
-    session.add(product)
-    session.commit()
-    session.refresh(product)
     return product
 
-# update product price by ProductName
-@router.put("/price/{product_name}", response_model=Product)
-def update_product_price(product_name: str, product_input: ProductsUpdate, session: Session = Depends(get_session)) -> Product:
-    product = session.exec(select(Product).where(Product.ProductName == product_name)).first()
+# Get Stock by Product Id
+@router.get("/stock/{product_id}", response_model=Product)
+def get_product_stock_by_id(product_id: int, session: Session = Depends(get_session)) -> Product:
+    product = session.exec(select(Product.StockQty).where(Product.id == product_id))
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    product = Product.model_validate(product_input, product)
-    session.add(product)
-    session.commit()
-    session.refresh(product)
     return product
 
-
-#get first 10 products
-# @router.get("/first10", response_model=list[Product])
-# def get_first10_products(session: Session = Depends(get_session)) -> list[Product]:
-#     products = session.exec(select(Product).limit(10)).all()
-#     return products
+@router.get("/price/{product_name}", response_model=ProductPriceByName)
+def get_product_price_by_name(product_name: str, session: Session = Depends(get_session)) -> ProductPriceByName:
+    product = session.exec(select(Product.ProductPrice).where(Product.ProductName == product_name))
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
