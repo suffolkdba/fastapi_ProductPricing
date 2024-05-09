@@ -26,8 +26,8 @@ mydb = mysql.connector.connect(
 #     echo=True # Log Generated SQL
 # )
 engine = create_engine(
-    "mysql+mysqlconnector://"+MYSQL_USER+":"+MYSQL_PASSWORD+"@"+MYSQL_HOST+":"+MYSQL_PORT+"/ProductsDatabase",
-    echo=True # Log Generated SQL
+    "mysql+mysqlconnector://"+MYSQL_USER+":"+MYSQL_PASSWORD+"@"+MYSQL_HOST+":"+MYSQL_PORT+"/ProductsDatabase"
+    #echo=True # Log Generated SQL
 )
 
 def get_session():
